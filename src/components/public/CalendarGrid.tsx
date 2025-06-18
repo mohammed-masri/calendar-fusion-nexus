@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CalendarView, EventCategory, CalendarEvent } from '@/types/calendar';
 import { ParticipantAvatars } from './ParticipantAvatars';
@@ -135,7 +136,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                         onClick={() => onEventSelect(event)}
                       >
                         <div className="font-semibold text-xs sm:text-sm leading-tight mb-1 truncate">{event.title}</div>
-                        <div className="text-[10px] sm:text-xs opacity-75 mb-1">
+                        <div className="font-medium text-[10px] sm:text-xs leading-tight mb-1 opacity-75">
                           {event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                         {event.participants.length > 0 && (
@@ -184,29 +185,48 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         const eventDate = new Date(event.startTime);
         return eventDate.toDateString() === day.toDateString();
       });
-      return dayEvents.filter(isAllDayEvent);
+      const allDayEventsForDay = dayEvents.filter(isAllDayEvent);
+      console.log(`All-day events for ${day.toDateString()}:`, allDayEventsForDay);
+      return allDayEventsForDay;
     });
+
+    console.log('Week all-day events mapping:', weekAllDayEvents);
 
     const hasAllDayEvents = weekAllDayEvents.some(dayEvents => dayEvents.length > 0);
 
     return (
       <div className="bg-white flex-1 overflow-hidden">
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] border-b border-gray-100 min-w-[600px]">
-          <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 bg-gray-50/50 border-r border-gray-100 text-center">GMT+4</div>
+        {/* Enhanced Day Headers */}
+        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200 bg-white">
+          <div className="p-4"></div>
           {weekDays.map((day, index) => {
             const isToday = day.toDateString() === new Date().toDateString();
             const isSelected = day.toDateString() === currentDate.toDateString();
             return (
-              <div key={index} className={`p-2 sm:p-4 text-center border-r border-gray-100 transition-all duration-200 ${isSelected ? 'bg-white' : 'bg-gray-50/30'}`}>
-                <div className="text-xs font-medium text-gray-600 mb-1 sm:mb-2">
-                  {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+              <div 
+                key={index} 
+                className="p-4 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center"
+                onClick={() => {
+                  const event = new CustomEvent('dateChange', { detail: day });
+                  window.dispatchEvent(event);
+                }}
+              >
+                <div className={`w-full flex flex-col items-center justify-center py-3 px-2 rounded-lg transition-all duration-200 ${
+                  isSelected 
+                    ? 'bg-gray-900 text-white shadow-lg' 
+                    : 'hover:bg-gray-50'
+                }`}>
+                  <span className={`text-xs font-semibold mb-2 tracking-wider ${
+                    isSelected ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+                  </span>
+                  <span className={`text-2xl font-bold ${
+                    isToday && !isSelected ? 'text-blue-600' : ''
+                  }`}>
+                    {day.getDate()}
+                  </span>
                 </div>
-                <div className={`text-lg sm:text-xl font-bold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
-                  {day.getDate()}
-                </div>
-                {isSelected && (
-                  <div className="w-full h-1 bg-blue-500 rounded-full mt-1 sm:mt-2"></div>
-                )}
               </div>
             );
           })}
@@ -214,19 +234,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
 
         {/* All-day events section for week view */}
         {hasAllDayEvents && (
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200 min-w-[600px]">
-            <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 bg-orange-50/50 border-r border-gray-100 text-center">
+          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200 bg-gray-50/30">
+            <div className="p-4 text-xs font-semibold text-gray-600 flex items-center justify-center">
               All Day
             </div>
             {weekAllDayEvents.map((dayEvents, dayIndex) => (
-              <div key={dayIndex} className="p-1 space-y-1 border-r border-gray-100 min-h-[60px]">
+              <div key={dayIndex} className="p-2 space-y-2 min-h-[80px] border-r border-gray-100 last:border-r-0">
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`${getCategoryColor(event.category)} p-1 sm:p-2 rounded cursor-pointer hover:shadow-lg transition-all duration-200 border text-xs`}
+                    className={`${getCategoryColor(event.category)} p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 border text-xs w-full`}
                     onClick={() => onEventSelect(event)}
                   >
-                    <div className="font-semibold truncate">{event.title}</div>
+                    <div className="font-semibold truncate w-full mb-1">{event.title}</div>
+                    <div className="text-xs opacity-75">All Day</div>
                   </div>
                 ))}
               </div>
@@ -234,13 +255,19 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           </div>
         )}
 
-        <div className="overflow-auto h-[calc(100vh-250px)]">
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] min-w-[600px]">
+        {/* Time Grid with Events */}
+        <div className="overflow-auto h-[calc(100vh-300px)]">
+          <div className="grid grid-cols-[80px_repeat(7,1fr)]">
             {timeSlots.map((hour) => (
               <React.Fragment key={hour}>
-                <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 border-b border-gray-50 bg-gray-50/30 border-r border-gray-100 h-20 sm:h-28">
-                  {hour}:00
+                {/* Time Column */}
+                <div className="p-4 text-sm font-medium text-gray-600 border-b border-gray-100 border-r border-gray-200 h-24 flex items-start justify-center pt-2 bg-gray-50/50">
+                  <span className="text-gray-500">
+                    {hour.toString().padStart(2, '0')}:00
+                  </span>
                 </div>
+                
+                {/* Day Columns */}
                 {weekDays.map((day, dayIndex) => {
                   const dayEvents = filteredEvents.filter(event => {
                     const eventDate = new Date(event.startTime);
@@ -250,32 +277,32 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   });
 
                   return (
-                    <div key={dayIndex} className="relative border-r border-b border-gray-50 h-20 sm:h-28 hover:bg-gray-25 transition-colors duration-200">
+                    <div key={dayIndex} className="relative border-b border-gray-100 border-r border-gray-200 last:border-r-0 h-24 hover:bg-gray-25 transition-colors duration-200">
                       {dayEvents.map((event, eventIndex) => {
                         const duration = (event.endTime.getTime() - event.startTime.getTime()) / (1000 * 60 * 60);
-                        const heightPx = Math.max(duration * (window.innerWidth < 640 ? 80 : 112), 50);
+                        const heightPx = Math.max(duration * 96, 60); // 96px per hour (h-24)
                         
                         return (
                           <div
                             key={event.id}
-                            className={`absolute inset-x-1 top-1 ${getCategoryColor(event.category)} p-2 sm:p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 border hover:scale-[1.02] shadow-sm overflow-hidden`}
+                            className={`absolute inset-x-2 top-2 ${getCategoryColor(event.category)} p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 border hover:scale-[1.02] shadow-sm overflow-hidden`}
                             style={{
                               height: `${heightPx}px`,
-                              top: `${eventIndex * 4 + 4}px`
+                              top: `${eventIndex * 4 + 8}px`
                             }}
                             onClick={() => onEventSelect(event)}
                           >
-                            <div className="font-semibold text-xs sm:text-sm leading-tight mb-1 truncate">{event.title}</div>
-                            <div className="font-medium text-[10px] sm:text-xs leading-tight mb-1 opacity-75">
-                              {event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}-{event.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div className="font-semibold text-sm leading-tight mb-1 truncate">{event.title}</div>
+                            <div className="font-medium text-xs leading-tight mb-2 opacity-75">
+                              {event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {event.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             {event.participants.length > 0 && (
-                              <div className="mt-1 overflow-hidden">
+                              <div className="mt-auto">
                                 <ParticipantAvatars 
                                   participants={event.participants} 
-                                  maxVisible={2} 
+                                  maxVisible={3} 
                                   size="xs" 
-                                  forceCount={heightPx < 70}
+                                  forceCount={heightPx < 80}
                                 />
                               </div>
                             )}

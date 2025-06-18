@@ -52,6 +52,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   return (
     <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 sm:px-8 py-4 sm:py-6 font-inter">
+      {/* Main Header Row */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 sm:gap-8 min-w-0">
           {/* Mobile menu button */}
@@ -72,6 +73,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             {getDateDisplay()}
           </Button>
           
+          {/* Navigation controls */}
           <div className="flex items-center gap-1 sm:gap-2">
             <Button 
               variant="ghost" 

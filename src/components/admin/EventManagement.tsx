@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CalendarEvent, EventStatus, EventCategory } from '@/types/calendar';
 import { Check, X, Eye, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { EventEditModal } from './EventEditModal';
 
 export const EventManagement = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([
@@ -48,6 +48,8 @@ export const EventManagement = () => {
   
   const [filterStatus, setFilterStatus] = useState<EventStatus | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<EventCategory | 'all'>('all');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const { toast } = useToast();
 
   const handleApprove = (eventId: string) => {
@@ -72,6 +74,19 @@ export const EventManagement = () => {
       title: "Event Rejected",
       description: "Event has been rejected and will not be visible publicly",
     });
+  };
+
+  const handleEdit = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEvent = (eventId: string, updatedEvent: Partial<CalendarEvent>) => {
+    setEvents(events.map(event => 
+      event.id === eventId 
+        ? { ...event, ...updatedEvent }
+        : event
+    ));
   };
 
   const filteredEvents = events.filter(event => {
@@ -166,7 +181,11 @@ export const EventManagement = () => {
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEdit(event)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   
@@ -196,6 +215,13 @@ export const EventManagement = () => {
           ))}
         </div>
       </Card>
+
+      <EventEditModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        event={selectedEvent}
+        onSave={handleSaveEvent}
+      />
     </div>
   );
 };

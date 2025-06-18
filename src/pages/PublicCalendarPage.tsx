@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarHeader } from '@/components/public/CalendarHeader';
 import { CalendarGrid } from '@/components/public/CalendarGrid';
 import { CalendarSidebar } from '@/components/public/CalendarSidebar';
@@ -12,6 +12,18 @@ const PublicCalendarPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Listen for date change events from the calendar grid
+  useEffect(() => {
+    const handleDateChange = (event: CustomEvent<Date>) => {
+      setCurrentDate(event.detail);
+    };
+
+    window.addEventListener('dateChange', handleDateChange as EventListener);
+    return () => {
+      window.removeEventListener('dateChange', handleDateChange as EventListener);
+    };
+  }, []);
 
   // Enhanced mock events with photos and better descriptions
   const mockEvents: CalendarEvent[] = [
