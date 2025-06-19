@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { CalendarView, EventCategory, CalendarEvent } from '@/types/calendar';
+import { Card, CardContent } from '@/components/ui/card';
 import { ParticipantAvatars } from './ParticipantAvatars';
 
 interface CalendarGridProps {
@@ -23,14 +23,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     return event.isApproved;
   });
 
-  // Add debugging
-  console.log('Filtered events:', filteredEvents);
-  console.log('Current date:', currentDate);
-  console.log('Selected category:', selectedCategory);
-
   const getCategoryColor = (category: EventCategory) => {
     const colors = {
       academic: 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 text-orange-800',
+      'academic-calendar': 'bg-gradient-to-br from-teal-100 to-cyan-200 border-teal-300 text-teal-800',
       events: 'bg-gradient-to-br from-green-100 to-green-200 border-green-300 text-green-800', 
       meetings: 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 text-blue-800',
       'vip-visit': 'bg-gradient-to-br from-red-100 to-red-200 border-red-300 text-red-800',
@@ -54,8 +50,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       return eventDate.toDateString() === currentDate.toDateString();
     });
 
-    console.log('Day events for', currentDate.toDateString(), ':', dayEvents);
-
     const allDayEvents = dayEvents.filter(isAllDayEvent);
     const timedEvents = dayEvents.filter(event => !isAllDayEvent(event));
 
@@ -65,36 +59,21 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     }
 
     return (
-      <div className="bg-white flex-1 overflow-hidden">
-        <div className="grid grid-cols-[60px_1fr] sm:grid-cols-[100px_1fr] border-b border-gray-100">
-          <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 bg-gray-50/50 border-r border-gray-100 text-center">
-            Time
-          </div>
-          <div className="p-2 sm:p-4 text-center border-r border-gray-100">
-            <div className="text-sm sm:text-lg font-semibold text-gray-900">
-              {currentDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </div>
-          </div>
-        </div>
-
+      <div className="flex-1 flex flex-col min-h-0">
         {/* All-day events section */}
         {allDayEvents.length > 0 && (
-          <div className="grid grid-cols-[60px_1fr] sm:grid-cols-[100px_1fr] border-b border-gray-200">
-            <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 bg-orange-50/50 border-r border-gray-100 text-center">
-              All Day
+          <div className="flex border-b border-gray-200 bg-orange-50/30">
+            <div className="w-20 sm:w-24 p-3 sm:p-4 text-xs font-semibold text-gray-600 bg-gray-50/50 border-r border-gray-200 flex items-center justify-center min-h-[60px] sm:min-h-[70px]">
+              <span className="text-center leading-tight">All Day</span>
             </div>
-            <div className="p-2 space-y-2">
+            <div className="flex-1 p-2 space-y-2 min-h-[60px] sm:min-h-[70px] flex flex-col justify-center">
               {allDayEvents.map((event) => (
                 <div
                   key={event.id}
                   className={`${getCategoryColor(event.category)} p-2 sm:p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 border hover:scale-[1.02] shadow-sm`}
                   onClick={() => onEventSelect(event)}
                 >
-                  <div className="font-semibold text-xs sm:text-sm leading-tight mb-1">{event.title}</div>
+                  <div className="font-semibold text-xs sm:text-sm leading-tight mb-1 truncate">{event.title}</div>
                   <div className="text-[10px] sm:text-xs opacity-75 mb-1">All Day Event</div>
                   {event.participants.length > 0 && (
                     <div className="mt-1">
@@ -102,7 +81,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                         participants={event.participants} 
                         maxVisible={3} 
                         size="xs" 
-                        forceCount={window.innerWidth < 640}
+                        forceCount={true}
                       />
                     </div>
                   )}
@@ -112,8 +91,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           </div>
         )}
 
-        <div className="overflow-y-auto h-[calc(100vh-200px)]">
-          <div className="grid grid-cols-[60px_1fr] sm:grid-cols-[100px_1fr]">
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex flex-col">
             {timeSlots.map((hour) => {
               const hourEvents = timedEvents.filter(event => {
                 const eventHour = new Date(event.startTime).getHours();
@@ -121,13 +100,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               });
 
               return (
-                <React.Fragment key={hour}>
-                  <div className="p-2 sm:p-4 text-xs font-medium text-gray-500 border-b border-gray-50 bg-gray-50/30 border-r border-gray-100 h-16 sm:h-20 flex items-start justify-center pt-2">
-                    <span className="text-xs">
+                <div key={hour} className="flex">
+                  <div className="w-20 sm:w-24 p-3 sm:p-4 text-xs font-medium text-gray-500 border-b border-gray-50 bg-gray-50/30 border-r border-gray-200 h-16 sm:h-20 flex items-start justify-center pt-2">
+                    <span className="text-xs text-center">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
-                  <div className="relative border-r border-b border-gray-50 h-16 sm:h-20 hover:bg-gray-25 transition-colors duration-200">
+                  <div className="relative flex-1 border-r border-b border-gray-50 h-16 sm:h-20 hover:bg-gray-25 transition-colors duration-200">
                     {hourEvents.map((event, eventIndex) => (
                       <div
                         key={event.id}
@@ -145,14 +124,14 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                               participants={event.participants} 
                               maxVisible={3} 
                               size="xs" 
-                              forceCount={window.innerWidth < 640}
+                              forceCount={true}
                             />
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
-                </React.Fragment>
+                </div>
               );
             })}
           </div>
@@ -172,78 +151,35 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       weekDays.push(day);
     }
 
-    console.log('Week days:', weekDays.map(d => d.toDateString()));
-
     const timeSlots = [];
     for (let hour = 6; hour <= 23; hour++) {
       timeSlots.push(hour);
     }
 
-    // Get all-day events for the week
     const weekAllDayEvents = weekDays.map(day => {
       const dayEvents = filteredEvents.filter(event => {
         const eventDate = new Date(event.startTime);
         return eventDate.toDateString() === day.toDateString();
       });
-      const allDayEventsForDay = dayEvents.filter(isAllDayEvent);
-      console.log(`All-day events for ${day.toDateString()}:`, allDayEventsForDay);
-      return allDayEventsForDay;
+      return dayEvents.filter(isAllDayEvent);
     });
-
-    console.log('Week all-day events mapping:', weekAllDayEvents);
 
     const hasAllDayEvents = weekAllDayEvents.some(dayEvents => dayEvents.length > 0);
 
     return (
-      <div className="bg-white flex-1 overflow-hidden">
-        {/* Enhanced Day Headers */}
-        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200 bg-white">
-          <div className="p-4"></div>
-          {weekDays.map((day, index) => {
-            const isToday = day.toDateString() === new Date().toDateString();
-            const isSelected = day.toDateString() === currentDate.toDateString();
-            return (
-              <div 
-                key={index} 
-                className="p-4 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center"
-                onClick={() => {
-                  const event = new CustomEvent('dateChange', { detail: day });
-                  window.dispatchEvent(event);
-                }}
-              >
-                <div className={`w-full flex flex-col items-center justify-center py-3 px-2 rounded-lg transition-all duration-200 ${
-                  isSelected 
-                    ? 'bg-gray-900 text-white shadow-lg' 
-                    : 'hover:bg-gray-50'
-                }`}>
-                  <span className={`text-xs font-semibold mb-2 tracking-wider ${
-                    isSelected ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
-                    {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
-                  </span>
-                  <span className={`text-2xl font-bold ${
-                    isToday && !isSelected ? 'text-blue-600' : ''
-                  }`}>
-                    {day.getDate()}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
+      <div className="flex-1 flex flex-col min-h-0">
         {/* All-day events section for week view */}
         {hasAllDayEvents && (
-          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-200 bg-gray-50/30">
-            <div className="p-4 text-xs font-semibold text-gray-600 flex items-center justify-center">
-              All Day
+          <div className="flex border-b border-gray-200 bg-orange-50/30">
+            <div className="w-20 sm:w-24 p-3 sm:p-4 text-xs font-semibold text-gray-600 bg-gray-50/50 border-r border-gray-200 flex items-center justify-center min-h-[60px] sm:min-h-[80px]">
+              <span className="text-center leading-tight">All Day</span>
             </div>
             {weekAllDayEvents.map((dayEvents, dayIndex) => (
-              <div key={dayIndex} className="p-2 space-y-2 min-h-[80px] border-r border-gray-100 last:border-r-0">
+              <div key={dayIndex} className="flex-1 p-1 sm:p-2 space-y-1 sm:space-y-2 min-h-[60px] sm:min-h-[80px] border-r border-gray-200 last:border-r-0 flex flex-col justify-center">
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`${getCategoryColor(event.category)} p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 border text-xs w-full`}
+                    className={`${getCategoryColor(event.category)} p-2 sm:p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 border text-xs w-full`}
                     onClick={() => onEventSelect(event)}
                   >
                     <div className="font-semibold truncate w-full mb-1">{event.title}</div>
@@ -256,13 +192,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         )}
 
         {/* Time Grid with Events */}
-        <div className="overflow-auto h-[calc(100vh-300px)]">
-          <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+        <div className="flex-1 overflow-auto min-h-0">
+          <div className="flex flex-col">
             {timeSlots.map((hour) => (
-              <React.Fragment key={hour}>
+              <div key={hour} className="flex">
                 {/* Time Column */}
-                <div className="p-4 text-sm font-medium text-gray-600 border-b border-gray-100 border-r border-gray-200 h-24 flex items-start justify-center pt-2 bg-gray-50/50">
-                  <span className="text-gray-500">
+                <div className="w-20 sm:w-24 p-3 sm:p-4 text-sm font-medium text-gray-600 border-b border-gray-100 border-r border-gray-200 h-20 sm:h-24 flex items-start justify-center pt-2 bg-gray-50/50">
+                  <span className="text-gray-500 text-xs sm:text-sm text-center">
                     {hour.toString().padStart(2, '0')}:00
                   </span>
                 </div>
@@ -277,32 +213,32 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   });
 
                   return (
-                    <div key={dayIndex} className="relative border-b border-gray-100 border-r border-gray-200 last:border-r-0 h-24 hover:bg-gray-25 transition-colors duration-200">
+                    <div key={dayIndex} className="relative flex-1 border-b border-gray-100 border-r border-gray-200 last:border-r-0 h-20 sm:h-24 hover:bg-gray-25 transition-colors duration-200">
                       {dayEvents.map((event, eventIndex) => {
                         const duration = (event.endTime.getTime() - event.startTime.getTime()) / (1000 * 60 * 60);
-                        const heightPx = Math.max(duration * 96, 60); // 96px per hour (h-24)
+                        const heightPx = Math.max(duration * 80, 40);
                         
                         return (
                           <div
                             key={event.id}
-                            className={`absolute inset-x-2 top-2 ${getCategoryColor(event.category)} p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 border hover:scale-[1.02] shadow-sm overflow-hidden`}
+                            className={`absolute inset-x-1 sm:inset-x-2 top-1 sm:top-2 ${getCategoryColor(event.category)} p-1 sm:p-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 border hover:scale-[1.02] shadow-sm overflow-hidden`}
                             style={{
                               height: `${heightPx}px`,
-                              top: `${eventIndex * 4 + 8}px`
+                              top: `${eventIndex * 4 + 4}px`
                             }}
                             onClick={() => onEventSelect(event)}
                           >
-                            <div className="font-semibold text-sm leading-tight mb-1 truncate">{event.title}</div>
-                            <div className="font-medium text-xs leading-tight mb-2 opacity-75">
+                            <div className="font-semibold text-xs sm:text-sm leading-tight mb-1 truncate">{event.title}</div>
+                            <div className="font-medium text-xs leading-tight mb-1 sm:mb-2 opacity-75">
                               {event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {event.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
-                            {event.participants.length > 0 && (
+                            {event.participants.length > 0 && heightPx > 50 && (
                               <div className="mt-auto">
                                 <ParticipantAvatars 
                                   participants={event.participants} 
-                                  maxVisible={3} 
+                                  maxVisible={2} 
                                   size="xs" 
-                                  forceCount={heightPx < 80}
+                                  forceCount={true}
                                 />
                               </div>
                             )}
@@ -312,7 +248,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     </div>
                   );
                 })}
-              </React.Fragment>
+              </div>
             ))}
           </div>
         </div>
@@ -345,16 +281,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     }
 
     return (
-      <div className="bg-white flex-1 overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-gray-100">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-2 sm:p-4 text-center text-sm font-semibold text-gray-600 bg-gray-50/50 border-r border-gray-100">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        <div className="grid grid-rows-6 h-[calc(100vh-250px)]">
+      <div className="flex-1 overflow-auto min-h-0">
+        <div className="grid grid-rows-6 min-h-full">
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7">
               {week.map((day, dayIndex) => {
@@ -365,11 +293,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 return (
                   <div
                     key={dayIndex}
-                    className={`min-h-[100px] sm:min-h-[140px] p-2 sm:p-3 border-r border-b border-gray-50 ${
+                    className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-3 border-r border-b border-gray-50 last:border-r-0 ${
                       isCurrentMonth ? 'bg-white' : 'bg-gray-50/30'
                     } ${isSelected ? 'bg-blue-50' : ''} hover:bg-gray-25 transition-colors duration-200 overflow-hidden`}
                   >
-                    <div className={`text-sm font-semibold mb-2 sm:mb-3 ${
+                    <div className={`text-xs sm:text-sm font-semibold mb-1 sm:mb-3 ${
                       isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                     } ${isToday ? 'text-blue-600' : ''}`}>
                       {day.date.getDate()}
@@ -379,11 +307,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                       {day.events.slice(0, 2).map((event) => (
                         <div
                           key={event.id}
-                          className={`text-xs p-1.5 sm:p-2 rounded-lg cursor-pointer hover:shadow-md transition-all duration-200 border ${getCategoryColor(event.category)} shadow-sm overflow-hidden`}
+                          className={`text-[10px] sm:text-xs p-1 sm:p-2 rounded-lg cursor-pointer hover:shadow-md transition-all duration-200 border ${getCategoryColor(event.category)} shadow-sm overflow-hidden`}
                           onClick={() => onEventSelect(event)}
                         >
                           <div className="font-semibold truncate mb-1">{event.title}</div>
-                          <div className="opacity-75 text-[10px] sm:text-xs mb-1">
+                          <div className="opacity-75 text-[9px] sm:text-xs mb-1">
                             {isAllDayEvent(event) ? 'All Day' : event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                           {event.participants.length > 0 && (
@@ -399,7 +327,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                         </div>
                       ))}
                       {day.events.length > 2 && (
-                        <div className="text-xs text-gray-500 font-medium px-2">
+                        <div className="text-[10px] sm:text-xs text-gray-500 font-medium px-1 sm:px-2">
                           +{day.events.length - 2} more
                         </div>
                       )}
@@ -421,7 +349,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     }
 
     return (
-      <div className="bg-white flex-1 p-4 sm:p-8 overflow-auto h-[calc(100vh-200px)]">
+      <div className="flex-1 p-4 sm:p-8 overflow-auto min-h-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {months.map((month, index) => {
             const monthEvents = filteredEvents.filter(event => {
@@ -490,8 +418,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   };
 
   return (
-    <div className="flex-1 bg-gray-50/30 flex flex-col overflow-hidden">
-      {renderView()}
-    </div>
+    <Card className="shadow-lg flex-1 flex flex-col min-h-0 border-gray-200 bg-white/95 backdrop-blur-sm">
+      <CardContent className="flex-1 flex flex-col min-h-0 p-0">
+        {renderView()}
+      </CardContent>
+    </Card>
   );
 };

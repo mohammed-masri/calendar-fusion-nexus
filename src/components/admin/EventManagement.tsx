@@ -1,14 +1,35 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarEvent, EventStatus, EventCategory } from '@/types/calendar';
-import { Check, X, Eye, Edit } from 'lucide-react';
+import { CalendarEvent, EventStatus, EventCategory, OutlookCalendar } from '@/types/calendar';
+import { Check, X, Eye, Edit, Clock, MapPin, User, Users, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EventEditModal } from './EventEditModal';
 
 export const EventManagement = () => {
+  // Mock calendars data to match events with their source calendars
+  const calendars: OutlookCalendar[] = [
+    {
+      id: '1',
+      name: 'Main Academic Calendar',
+      isActive: true,
+      color: '#3b82f6',
+      lastSyncAt: new Date(),
+      createdAt: new Date(),
+    },
+    {
+      id: '2',
+      name: 'Events & Conferences',
+      isActive: true,
+      color: '#ef4444',
+      lastSyncAt: new Date(),
+      createdAt: new Date(),
+    }
+  ];
+
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: '1',
@@ -21,7 +42,7 @@ export const EventManagement = () => {
       organizer: 'John Doe',
       participants: ['Alice Smith', 'Bob Johnson'],
       photos: [],
-      outlookCalendarId: '1',
+      outlookCalendarId: '2',
       location: 'Main Auditorium',
       isApproved: false,
       createdAt: new Date(),
@@ -38,7 +59,7 @@ export const EventManagement = () => {
       organizer: 'Jane Wilson',
       participants: ['Executive Team'],
       photos: [],
-      outlookCalendarId: '2',
+      outlookCalendarId: '1',
       location: 'Conference Room A',
       isApproved: true,
       createdAt: new Date(),
@@ -51,6 +72,17 @@ export const EventManagement = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const { toast } = useToast();
+
+  // Function to get calendar info by ID
+  const getCalendarInfo = (calendarId: string) => {
+    return calendars.find(cal => cal.id === calendarId) || {
+      id: calendarId,
+      name: 'Unknown Calendar',
+      color: '#6b7280',
+      isActive: false,
+      createdAt: new Date(),
+    };
+  };
 
   const handleApprove = (eventId: string) => {
     setEvents(events.map(event => 
@@ -97,32 +129,39 @@ export const EventManagement = () => {
 
   const getStatusColor = (status: EventStatus) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'approved': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
+      case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   };
 
   const getCategoryColor = (category: EventCategory) => {
     const colors = {
-      academic: 'bg-blue-100 text-blue-800',
-      events: 'bg-purple-100 text-purple-800',
-      meetings: 'bg-gray-100 text-gray-800',
-      'vip-visit': 'bg-red-100 text-red-800',
-      conference: 'bg-green-100 text-green-800',
-      workshop: 'bg-orange-100 text-orange-800',
+      academic: 'bg-blue-50 text-blue-700 border-blue-200',
+      'academic-calendar': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      events: 'bg-purple-50 text-purple-700 border-purple-200',
+      meetings: 'bg-slate-50 text-slate-700 border-slate-200',
+      'vip-visit': 'bg-rose-50 text-rose-700 border-rose-200',
+      conference: 'bg-green-50 text-green-700 border-green-200',
+      workshop: 'bg-orange-50 text-orange-700 border-orange-200',
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || 'bg-slate-50 text-slate-700 border-slate-200';
   };
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1">
+      {/* Modern Filter Section */}
+      <Card className="p-6 bg-gradient-to-r from-white to-slate-50/30 border border-slate-200/60 shadow-lg shadow-slate-200/20">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="h-5 w-5 text-slate-600" />
+          <h3 className="font-semibold text-slate-900">Filter Events</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Status</label>
             <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as EventStatus | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-slate-300 focus:border-slate-500 focus:ring-slate-500">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -134,14 +173,16 @@ export const EventManagement = () => {
             </Select>
           </div>
           
-          <div className="flex-1">
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Category</label>
             <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value as EventCategory | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-slate-300 focus:border-slate-500 focus:ring-slate-500">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="academic">Academic</SelectItem>
+                <SelectItem value="academic-calendar">Academic Calendar</SelectItem>
                 <SelectItem value="events">Events</SelectItem>
                 <SelectItem value="meetings">Meetings</SelectItem>
                 <SelectItem value="vip-visit">VIP Visit</SelectItem>
@@ -151,40 +192,82 @@ export const EventManagement = () => {
             </Select>
           </div>
         </div>
+      </Card>
 
-        <div className="space-y-4">
-          {filteredEvents.map((event) => (
-            <div key={event.id} className="border rounded-lg p-4">
+      {/* Modern Events List */}
+      <div className="space-y-4">
+        {filteredEvents.map((event) => {
+          const calendarInfo = getCalendarInfo(event.outlookCalendarId);
+          return (
+            <Card key={event.id} className="p-6 bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-lg shadow-slate-200/20 hover:shadow-xl hover:shadow-slate-200/30 transition-all duration-300 group">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-lg">{event.title}</h3>
-                    <Badge className={getStatusColor(event.status)}>
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
+                    <h3 className="font-bold text-lg text-slate-900 group-hover:text-slate-800 transition-colors">
+                      {event.title}
+                    </h3>
+                    <Badge className={`${getStatusColor(event.status)} border font-medium px-3 py-1`}>
                       {event.status}
                     </Badge>
-                    <Badge className={getCategoryColor(event.category)}>
+                    <Badge className={`${getCategoryColor(event.category)} border font-medium px-3 py-1`}>
                       {event.category}
+                    </Badge>
+                    <Badge 
+                      variant="outline" 
+                      className="border-2 font-medium px-3 py-1"
+                      style={{ 
+                        borderColor: calendarInfo.color,
+                        backgroundColor: `${calendarInfo.color}10`,
+                        color: calendarInfo.color
+                      }}
+                    >
+                      <div 
+                        className="w-2 h-2 rounded-full mr-2" 
+                        style={{ backgroundColor: calendarInfo.color }}
+                      />
+                      {calendarInfo.name}
                     </Badge>
                   </div>
                   
-                  <p className="text-gray-600 mb-2">{event.description}</p>
+                  <p className="text-slate-600 mb-4 font-medium leading-relaxed">
+                    {event.description}
+                  </p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-500">
-                    <div>📅 {event.startTime.toLocaleDateString()} {event.startTime.toLocaleTimeString()}</div>
-                    <div>📍 {event.location}</div>
-                    <div>👤 Organizer: {event.organizer}</div>
-                    <div>👥 Participants: {event.participants.length}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Clock className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium">
+                        {event.startTime.toLocaleDateString()} at {event.startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium">{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <User className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Organizer: {event.organizer}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Users className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium">{event.participants.length} participants</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 ml-4">
-                  <Button variant="outline" size="sm">
+                <div className="flex items-center gap-2 ml-6 flex-shrink-0">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="hover:bg-slate-50 border-slate-300 text-slate-700 hover:text-slate-900 transition-all duration-200"
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => handleEdit(event)}
+                    className="hover:bg-slate-50 border-slate-300 text-slate-700 hover:text-slate-900 transition-all duration-200"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -195,26 +278,28 @@ export const EventManagement = () => {
                         variant="default" 
                         size="sm"
                         onClick={() => handleApprove(event.id)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
                       >
-                        <Check className="h-4 w-4 mr-2" />
+                        <Check className="h-4 w-4 mr-1" />
                         Approve
                       </Button>
                       <Button 
                         variant="destructive" 
                         size="sm"
                         onClick={() => handleReject(event.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
                       >
-                        <X className="h-4 w-4 mr-2" />
+                        <X className="h-4 w-4 mr-1" />
                         Reject
                       </Button>
                     </>
                   )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+            </Card>
+          );
+        })}
+      </div>
 
       <EventEditModal
         isOpen={editModalOpen}

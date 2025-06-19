@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +32,7 @@ const eventFormSchema = z.object({
   location: z.string().optional(),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
-  category: z.enum(['academic', 'events', 'meetings', 'vip-visit', 'conference', 'workshop']),
+  category: z.enum(['academic', 'academic-calendar', 'events', 'meetings', 'vip-visit', 'conference', 'workshop']),
   participants: z.string().optional(),
 });
 
@@ -233,6 +232,7 @@ export const EventEditModal: React.FC<EventEditModalProps> = ({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="academic">Academic</SelectItem>
+                        <SelectItem value="academic-calendar">Academic Calendar</SelectItem>
                         <SelectItem value="events">Events</SelectItem>
                         <SelectItem value="meetings">Meetings</SelectItem>
                         <SelectItem value="vip-visit">VIP Visit</SelectItem>

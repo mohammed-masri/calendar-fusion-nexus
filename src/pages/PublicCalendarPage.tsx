@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { CalendarHeader } from '@/components/public/CalendarHeader';
+import { CalendarCompleteHeader } from '@/components/public/CalendarCompleteHeader';
 import { CalendarGrid } from '@/components/public/CalendarGrid';
 import { CalendarSidebar } from '@/components/public/CalendarSidebar';
 import { MobileCalendarSidebar } from '@/components/public/MobileCalendarSidebar';
@@ -8,7 +9,7 @@ import { CalendarView, EventCategory, CalendarEvent } from '@/types/calendar';
 
 const PublicCalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>('week');
-  const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all');
+  const [selectedCategories, setSelectedCategories] = useState<(EventCategory | 'all')[]>(['all']);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -24,6 +25,9 @@ const PublicCalendarPage = () => {
       window.removeEventListener('dateChange', handleDateChange as EventListener);
     };
   }, []);
+
+  // Convert selectedCategories array to single category for CalendarGrid compatibility
+  const selectedCategory = selectedCategories.includes('all') ? 'all' : selectedCategories[0] || 'all';
 
   // Enhanced mock events with photos and better descriptions
   const mockEvents: CalendarEvent[] = [
@@ -141,14 +145,14 @@ const PublicCalendarPage = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    // Thursday events
+    // Updated category for Summer Term A
     {
       id: '7',
       title: 'Summer Term A Ends',
       description: 'Official end date for Summer Term A. Final grades submission deadline and completion of all academic requirements for the term.',
       startTime: new Date(new Date(new Date().setDate(new Date().getDate() + ((4 - new Date().getDay() + 7) % 7))).setHours(0, 0, 0, 0)),
       endTime: new Date(new Date(new Date().setDate(new Date().getDate() + ((4 - new Date().getDay() + 7) % 7))).setHours(23, 59, 59, 999)),
-      category: 'academic',
+      category: 'academic-calendar',
       status: 'approved',
       organizer: 'Academic Affairs',
       participants: ['All Students', 'Faculty Members'],
@@ -259,8 +263,8 @@ const PublicCalendarPage = () => {
   return (
     <div className="h-screen bg-gray-50 flex w-full overflow-hidden">
       <CalendarSidebar
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        selectedCategories={selectedCategories}
+        onCategoryChange={setSelectedCategories}
         currentDate={currentDate}
         onDateChange={setCurrentDate}
         events={mockEvents}
@@ -269,29 +273,33 @@ const PublicCalendarPage = () => {
       <MobileCalendarSidebar
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        selectedCategories={selectedCategories}
+        onCategoryChange={setSelectedCategories}
         currentDate={currentDate}
         onDateChange={setCurrentDate}
         events={mockEvents}
       />
       
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <CalendarHeader
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          currentDate={currentDate}
-          onDateChange={setCurrentDate}
-          onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
-        />
+        <div className="px-4 pt-4">
+          <CalendarCompleteHeader
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+            onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
+          />
+        </div>
         
-        <CalendarGrid
-          view={currentView}
-          currentDate={currentDate}
-          selectedCategory={selectedCategory}
-          events={mockEvents}
-          onEventSelect={setSelectedEvent}
-        />
+        <div className="px-4 pb-4 pt-2 flex-1 flex flex-col min-h-0">
+          <CalendarGrid
+            view={currentView}
+            currentDate={currentDate}
+            selectedCategory={selectedCategory}
+            events={mockEvents}
+            onEventSelect={setSelectedEvent}
+          />
+        </div>
       </div>
 
       <EventDetails

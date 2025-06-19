@@ -33,6 +33,7 @@ export interface OutlookCalendar {
 
 export type EventCategory = 
   | 'academic' 
+  | 'academic-calendar'
   | 'events' 
   | 'meetings' 
   | 'vip-visit' 
